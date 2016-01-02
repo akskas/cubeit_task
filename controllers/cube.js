@@ -232,7 +232,7 @@ var removeContentFromCube = function(req, res){  //get content list for correspo
     });
 }
 var removeFromCube = function(req, res, content, cube_id){  //updates content list
-    var content_id = req.body.content_id;        
+    var content_id = req.params.content_id;        
     content = content.split(' ');
     var match = 0;
     for(var i=0; i < content.length; i++){
@@ -330,14 +330,14 @@ var getFromShared = function(req, res, shared, cube_id){  //gets cubes list of a
         }
     });
 }
-var deleteFromShared = function(req, res, cube_id, cubes, shared_id){  // updates the 'cubes' fields a shared users 
+var deleteFromShared = function(req, res, cube_id, cubes, shared_id){  // updates the 'cubes' fields of shared users 
     console.log("cube_id: " + cube_id + " cubes: " + cubes + " shared_id: " + shared_id);
     cubes = cubes.split(' ');
     var match = 0;
     for(var i=0; i < cubes.length; i++){
         if(cubes[i] == shared_id.toString()){
             match = i;
-            i = content.length;
+            i = cubes.length;
         }
     }
     console.log("match: ", match);
