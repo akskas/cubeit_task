@@ -5,8 +5,19 @@ var dbconfig = require('../config/database');
 var connection = mysql.createConnection(dbconfig.connection);
 //console.log('Database connection ', connection.config.host +" "+connection.config.port);
 
+/*
+  ** Database is divided into 3 tables (user, cubes, content)
+   *'user' table contains user's data and two extra fields 'cubes' and 'content' to save cubes and content associated with a user
+   *'cubes' table contains cube's name and 'content' column to save contents associated with a cube. 'Shared' column contains list of 
+        users with which that cube is shared. This is helpful while deleting a cube since we have to delete it from 'user' tables 'cubes' column 
+   *'content' table contains list of all contents    
+*/
+
 var emptyStr = "";
 
+/* 
+  1. This method creates a user in 'user' table
+*/
 var createUser = function(req, res){
     var name = req.body.name;
     var city = req.body.city;
@@ -21,15 +32,20 @@ var createUser = function(req, res){
     connection.query(sql, function (err, result) {
         if (err) {
             console.log("error in Insert", err);
+            res.send(response);
         } else {
             console.log('data saved');
             response.id= result.insertId;
-        }
-        res.send(response);
+            res.send(response);
+        } 
     });
 }
 
-var createCube = function(req, res){
+/*
+    2. For creating a cube
+       creates a cube in 'cubes' table and then updates the 'cubes' column of 'user' table by adding this cube's id
+*/
+var createCube = function(req, res){  //create a cube in 'cubes' table
     var name = req.body.name;
     var user_id = req.params.user_id;
     var response = {
@@ -49,8 +65,7 @@ var createCube = function(req, res){
         }
     });
 }
-
-var CopyCubeToUser = function(req, res, cube_id, response){
+var CopyCubeToUser = function(req, res, cube_id, response){   // gets cubes row data from user table
     var user_id = req.params.user_id;
     
     var sql = 'SELECT cubes FROM ' + dbconfig.user + ' WHERE id=' + user_id;
@@ -69,8 +84,7 @@ var CopyCubeToUser = function(req, res, cube_id, response){
         }
     });
 }
-
-var UpdateCubeInUser = function(req, res, user_id, cubes, cube_id, response){
+var UpdateCubeInUser = function(req, res, user_id, cubes, cube_id, response){   // updates cubes row in user table
     if(cubes) 
         cubes = cubes + " " + cube_id;
     else
@@ -87,7 +101,12 @@ var UpdateCubeInUser = function(req, res, user_id, cubes, cube_id, response){
         }
     });
 }
-var createContent = function(req, res){
+
+/*
+    3. For creating a content
+       creates a content in 'content' table and then updates the 'content' column of 'user' table by adding this content's id
+*/
+var createContent = function(req, res){ // creates a content row in 'content' table
     var link = req.body.link;
     var user_id = req.params.user_id;
     var response = {
@@ -107,7 +126,7 @@ var createContent = function(req, res){
         }
     });
 }
-var CopyContentToUser = function(req, res, content_id, response){
+var CopyContentToUser = function(req, res, content_id, response){  // get content colum data of corresponding user
     var user_id = req.params.user_id;
     
     var sql = 'SELECT content FROM ' + dbconfig.user + ' WHERE id=' + user_id;
@@ -126,8 +145,7 @@ var CopyContentToUser = function(req, res, content_id, response){
         }
     });
 }
-
-var UpdateContentInUser = function(req, res, user_id, content, content_id, response){
+var UpdateContentInUser = function(req, res, user_id, content, content_id, response){  //updates content list 
     if(content)
         content = content + " " + content_id;
     else
@@ -145,7 +163,11 @@ var UpdateContentInUser = function(req, res, user_id, content, content_id, respo
     });
 }
 
-var addContentToCube = function(req, res){
+/*
+    4. For adding a content to a cube
+       gets content list of corresponding cube and updates it 
+*/
+var addContentToCube = function(req, res){ //gets content list 
     var cube_id = req.params.cube_id;
     
     var sql = 'SELECT content FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
@@ -164,7 +186,7 @@ var addContentToCube = function(req, res){
         }
     });
 }
-var addToCube = function(req, res, content, cube_id){
+var addToCube = function(req, res, content, cube_id){  // update cube with new content list
     var content_id = req.body.content_id;      
     var response = {
         cube_id: cube_id,
@@ -185,7 +207,11 @@ var addToCube = function(req, res, content, cube_id){
     });
 }
 
-var removeContentFromCube = function(req, res){
+/*
+    5. For deleting a content from a cube
+       gets content list of corresponding cube and removes it from list 
+*/
+var removeContentFromCube = function(req, res){  //get content list for corresponding cube
     var cube_id = req.params.cube_id;
     
     var sql = 'SELECT content FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
@@ -197,12 +223,11 @@ var removeContentFromCube = function(req, res){
             console.log("content: ",result);
             result = JSON.stringify(result);
             result = JSON.parse(result);
-            addToCube(req, res, result[0].content, cube_id);
+            removeFromCube(req, res, result[0].content, cube_id);
         }
     });
 }
-
-var removeFromCube = function(req, res, content, cube_id){
+var removeFromCube = function(req, res, content, cube_id){  //updates content list
     var content_id = req.body.content_id;        
     content = content.split(' ');
     var match = 0;
@@ -234,7 +259,14 @@ var removeFromCube = function(req, res, content, cube_id){
     });
 }
 
-var deleteCube = function(req, res){
+/*
+    6. For deleting a cube
+       gets list of users with which corresponding cube is shared **
+       deletes the corresponding cube from 'cubes' table
+       gets cubes list of all the users with which cube is shared (** we already have list of shared users from first query)
+       updates the 'cubes' fields of all the shared users 
+*/
+var deleteCube = function(req, res){ //gets list of users with which corresponding cube is shared
     var cube_id = req.params.cube_id;
     
     var sql = 'SELECT shared FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
@@ -256,7 +288,7 @@ var deleteCube = function(req, res){
     
     
 }
-var deleteFromCube = function(req, res, shared, cube_id){
+var deleteFromCube = function(req, res, shared, cube_id){   //deletes the corresponding cube from 'cubes' table
     var sql = 'DELETE FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
     connection.query(sql, function (err, result) {
         if (err) {
@@ -267,8 +299,7 @@ var deleteFromCube = function(req, res, shared, cube_id){
         }
     });
 }
-
-var getFromShared = function(req, res, shared, cube_id){
+var getFromShared = function(req, res, shared, cube_id){  //gets cubes list of all the users with which cube is shared
     shared = shared.split(' ');
     var search_str="";
     for(var i=0; i<shared.length; i++){
@@ -295,8 +326,7 @@ var getFromShared = function(req, res, shared, cube_id){
         }
     });
 }
-
-var deleteFromShared = function(req, res, cube_id, cubes, shared_id){ 
+var deleteFromShared = function(req, res, cube_id, cubes, shared_id){  // updates the 'cubes' fields a shared users 
     console.log("cube_id: " + cube_id + " cubes: " + cubes + " shared_id: " + shared_id);
     cubes = cubes.split(' ');
     var match = 0;
@@ -327,7 +357,14 @@ var deleteFromShared = function(req, res, cube_id, cubes, shared_id){
     });
 }
 
-var shareCube = function(req, res){
+/*
+    7. For sharing a cube with other user
+       gets cubes list from shared user  
+       gets shared list of corresponding cube
+       updates 'shared' field of corresponding cube, adds shared user in the list
+       adds cube to the cube list of shared user
+*/
+var shareCube = function(req, res){  //gets cubes list from shared user
     var user_id = req.body.user_id;
     
     var sql = 'SELECT cubes FROM ' + dbconfig.user + ' WHERE id=' + user_id;
@@ -347,7 +384,7 @@ var shareCube = function(req, res){
         }
     });
 }
-var updateShareCube = function(req, res, cubes){
+var updateShareCube = function(req, res, cubes){    //gets shared list of corresponding cube
     var cube_id = req.params.cube_id;
     
     var sql = 'SELECT shared FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
@@ -367,8 +404,7 @@ var updateShareCube = function(req, res, cubes){
         }
     });
 }
-
-var addToShare = function(req, res, cubes, shares){
+var addToShare = function(req, res, cubes, shares){ //updates 'shared' field of corresponding cube, adds shared user in the list
     var cube_id = req.params.cube_id;
     var user_id = req.body.user_id;
     
@@ -388,8 +424,7 @@ var addToShare = function(req, res, cubes, shares){
         }
     });
 }                     
-                     
-var addCubeToUser = function(req, res, content){
+var addCubeToUser = function(req, res, content){ //adds cube to the cube list of shared user
     var cube_id = req.params.cube_id;
     var user_id = req.body.user_id;
     
@@ -416,7 +451,12 @@ var addCubeToUser = function(req, res, content){
     });
 }
 
-var shareContent = function(req, res){
+/*
+    8. For sharing a content with other user
+       gets content list of shared user
+       adds corresponding content in the list
+*/
+var shareContent = function(req, res){  //gets content list of shared user
     var user_id = req.body.user_id;
     
     var sql = 'SELECT content FROM ' + dbconfig.user + ' WHERE id=' + user_id;
@@ -435,8 +475,7 @@ var shareContent = function(req, res){
         }
     });
 }
-
-var addContUser = function(req, res, content){
+var addContUser = function(req, res, content){ //adds corresponding content in the list
     var content_id = req.params.content_id;
     var user_id = req.body.user_id;
     
@@ -463,7 +502,12 @@ var addContUser = function(req, res, content){
     });
 }
 
-var listCubes = function(req, res){
+/*
+    9. For listing all cube of a user
+       gets cubes list of user
+       searches all the cubes with corresponding cubes in cubes list
+*/
+var listCubes = function(req, res){ //gets cubes list of user
     var user_id = req.params.user_id;
     
     var sql = 'SELECT cubes FROM ' + dbconfig.user + ' WHERE id=' + user_id;
@@ -479,8 +523,7 @@ var listCubes = function(req, res){
         }
     });
 }
-
-var getMultipleCubes = function(req, res, cubes){
+var getMultipleCubes = function(req, res, cubes){  //searches all the cubes with corresponding cubes in cubes list
     cubes = cubes.split(' ');
     var cube_list="";
     for(var i=0; i<cubes.length-1; i++){
@@ -500,7 +543,13 @@ var getMultipleCubes = function(req, res, cubes){
     });
 }
 
-var listContent = function(req, res){
+/*
+    10. For listing all contents of a user
+        gets cubes list of user
+        takes the union of all the contents in all cubes in cube list
+        takes union of above content list with content data obtained from 'content' column of user 
+*/
+var listContent = function(req, res){ //gets cubes list of user
     var user_id = req.params.user_id;
     
     var sql = 'SELECT * FROM ' + dbconfig.user + ' WHERE id=' + user_id;
@@ -516,8 +565,7 @@ var listContent = function(req, res){
         }
     });
 }
-
-var cubeUnion = function(req, res, cubes, contents){
+var cubeUnion = function(req, res, cubes, contents){ //takes the union of all the contents in all cubes in cube list
     cubes = cubes.split(' ');
     var cube_list="";
     for(var i=0; i<cubes.length-1; i++){
@@ -559,8 +607,7 @@ var cubeUnion = function(req, res, cubes, contents){
         }
     });
 }
-
-var contentUnionWithCubes = function(req, res, content_list, contents){
+var contentUnionWithCubes = function(req, res, content_list, contents){ // takes union of above content list with content data obtained from 'content' column of user 
     contents = contents.split(' ');
     for(var i=0; i<contents.length; i++){
         contents[i] = parseInt(contents[i]);
@@ -591,21 +638,19 @@ var contentUnionWithCubes = function(req, res, content_list, contents){
         }
     });
 }
+
+
+// export modules
 module.exports = {
     createUser: createUser,
     createCube: createCube,
     createContent: createContent,
     addContentToCube: addContentToCube,
-    addToCube: addToCube,
     removeContentFromCube: removeContentFromCube,
-    removeFromCube: removeFromCube,
     deleteCube: deleteCube,
     shareCube: shareCube,
-    addCubeToUser: addCubeToUser,
     shareContent: shareContent,
-    addContUser: addContUser,
     listCubes: listCubes,
     listContent: listContent,
-    cubeUnion: cubeUnion,
-    contentUnionWithCubes: contentUnionWithCubes
+   
 }
