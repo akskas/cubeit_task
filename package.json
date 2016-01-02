@@ -1,0 +1,16 @@
+{
+  "name": "cubeit",
+  "version": "0.0.0",
+  "description": "cubeit task",
+  "main": "server.js",
+  "author": "Ankul kumar",
+  "dependencies": {
+    "body-parser": "^1.14.0",
+    "express": "~4.7.2",
+    "http": "0.0.0",
+    "method-override": "^2.3.5",
+    "morgan": "^1.6.1",
+    "mysql": "^2.9.0",
+    "nodemon": "^1.4.0"
+  }
+}
