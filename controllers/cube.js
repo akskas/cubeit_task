@@ -273,7 +273,7 @@ var removeFromCube = function(req, res, content, cube_id){  //updates content li
 var deleteCube = function(req, res){ //gets list of users with which corresponding cube is shared
     var cube_id = req.params.cube_id;
     
-    var sql = 'SELECT shared FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
+    var sql = 'SELECT * FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
     connection.query(sql, function (err, result) {
         if (err) {
             console.log("error in select", err);
@@ -284,27 +284,28 @@ var deleteCube = function(req, res){ //gets list of users with which correspondi
             result = JSON.parse(result);
             console.log("content2: ",result);
             if(result.length)
-                deleteFromCube(req, res, result[0].shared , cube_id);
-            else
-                deleteFromCube(req, res, "", cube_id);
+                deleteFromCube(req, res, result[0].shared , cube_id, result[0].user_id);
+            else{
+                var response = {message: "cube doest not exits"};
+                res.send(response);
+            }
         }
-    });
-    
-    
+    });   
 }
-var deleteFromCube = function(req, res, shared, cube_id){   //deletes the corresponding cube from 'cubes' table
+var deleteFromCube = function(req, res, shared, cube_id, creater_id){   //deletes the corresponding cube from 'cubes' table
     var sql = 'DELETE FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
     connection.query(sql, function (err, result) {
         if (err) {
             console.log("error in select", err);
             res.send(err);
         } else {
-            getFromShared(req, res, shared, cube_id);
+            getFromShared(req, res, shared, cube_id, creater_id);
         }
     });
 }
-var getFromShared = function(req, res, shared, cube_id){  //gets cubes list of all the users with which cube is shared
-    shared = shared.split(' ');
+var getFromShared = function(req, res, shared, cube_id, creater_id){  //gets cubes list of all the users with which cube is shared 
+    shared = shared.split(' ');                                       // and the creater of cube 
+    shared.push(creater_id);
     var search_str="";
     for(var i=0; i<shared.length; i++){
         if(i)
@@ -312,6 +313,7 @@ var getFromShared = function(req, res, shared, cube_id){  //gets cubes list of a
         else
             search_str =  "'" + shared[i] + "'";
     }
+//    search_str = search_str + "," + "'" + creater_id + "'";
     console.log("shared search str: ", search_str);
     var sql = 'SELECT cubes FROM ' + dbconfig.user + ' WHERE id IN(' + search_str + ')';
     connection.query(sql, function (err, result) {
@@ -330,7 +332,7 @@ var getFromShared = function(req, res, shared, cube_id){  //gets cubes list of a
         }
     });
 }
-var deleteFromShared = function(req, res, cube_id, cubes, shared_id){  // updates the 'cubes' fields of shared users 
+var deleteFromShared = function(req, res, cube_id, cubes, shared_id){  // updates the 'cubes' fields of shared users and creater of cube
     console.log("cube_id: " + cube_id + " cubes: " + cubes + " shared_id: " + shared_id);
     cubes = cubes.split(' ');
     var match = 0;
