@@ -193,7 +193,11 @@ var addToCube = function(req, res, content, cube_id){  // update cube with new c
         content_id: content_id
     };  
     
-    var new_content = content + " " + content_id;
+    var new_content;
+    if(content)
+        new_content = content + " " + content_id;
+    else
+        new_content = content_id;
     // save data in table
     var sql = 'UPDATE ' + dbconfig.cubes + ' SET content="' + new_content + '"' + ' WHERE id= ' + cube_id;
     connection.query(sql, function (err, result) {

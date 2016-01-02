@@ -24,6 +24,7 @@
     app.post('/user/:user_id/cube', getController.createCube);
     app.post('/user/:user_id/content', getController.createContent);
     app.post('/user/:user_id/cube/:cube_id/content', getController.addContentToCube);
+    // For Delete APIs we can also use post requests
     app.delete('/user/:user_id/cube/:cube_id/content/:content_id', getController.removeContentFromCube);
     app.delete('/user/:user_id/cube/:cube_id', getController.deleteCube);
 
