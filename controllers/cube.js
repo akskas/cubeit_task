@@ -213,9 +213,12 @@ var removeFromCube = function(req, res, content, cube_id){
         }
     }
     var new_content = "";
-    for(var i=0; i < content.length-1; i++){
+    for(var i=0; i < content.length; i++){
         if(i != match){
-            new_content = new_content + " " + content[i];
+            if(new_content)
+                new_content = new_content + " " + content[i];
+            else
+                new_content = content[i];
         }
     }
     // save data in table
@@ -234,13 +237,92 @@ var removeFromCube = function(req, res, content, cube_id){
 var deleteCube = function(req, res){
     var cube_id = req.params.cube_id;
     
+    var sql = 'SELECT shared FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log("error in select", err);
+            res.send(err);
+        } else {
+            console.log("content: ",result);
+            result = JSON.stringify(result);
+            result = JSON.parse(result);
+            console.log("content2: ",result);
+            if(result.length)
+                deleteFromCube(req, res, result[0].shared , cube_id);
+            else
+                deleteFromCube(req, res, "", cube_id);
+        }
+    });
+    
+    
+}
+var deleteFromCube = function(req, res, shared, cube_id){
     var sql = 'DELETE FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
     connection.query(sql, function (err, result) {
         if (err) {
             console.log("error in select", err);
             res.send(err);
         } else {
-            res.send("success");
+            getFromShared(req, res, shared, cube_id);
+        }
+    });
+}
+
+var getFromShared = function(req, res, shared, cube_id){
+    shared = shared.split(' ');
+    var search_str="";
+    for(var i=0; i<shared.length; i++){
+        if(i)
+            search_str =  search_str  + "," + "'" + shared[i] + "'";
+        else
+            search_str =  "'" + shared[i] + "'";
+    }
+    console.log("shared search str: ", search_str);
+    var sql = 'SELECT cubes FROM ' + dbconfig.user + ' WHERE id IN(' + search_str + ')';
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log("error in select", err);
+            res.send(err);
+        } else {
+            result = JSON.stringify(result);
+            result = JSON.parse(result);
+            console.log("cubes list: ", result);
+            for(var i=0; i<result.length; i++){
+                deleteFromShared(req, res, cube_id, result[i].cubes, shared[i]);
+                if(i == result.length-1)
+                    res.send("success");
+            }
+        }
+    });
+}
+
+var deleteFromShared = function(req, res, cube_id, cubes, shared_id){ 
+    console.log("cube_id: " + cube_id + " cubes: " + cubes + " shared_id: " + shared_id);
+    cubes = cubes.split(' ');
+    var match = 0;
+    for(var i=0; i < cubes.length; i++){
+        if(cubes[i] == shared_id.toString()){
+            match = i;
+            i = content.length;
+        }
+    }
+    console.log("match: ", match);
+    var new_cubes = "";
+    for(var i=0; i < cubes.length; i++){
+        if(i != match){
+            if(new_cubes)
+                new_cubes = new_cubes + " " + cubes[i];
+            else
+                new_cubes = cubes[i];
+        }
+    }
+    // save data in table
+    var sql = 'UPDATE ' + dbconfig.user + ' SET cubes="' + new_cubes + '"' + ' WHERE id= ' + shared_id;
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log("error in Update", err);
+        } else {
+            console.log('data saved');
         }
     });
 }
@@ -291,9 +373,9 @@ var addToShare = function(req, res, cubes, shares){
     var user_id = req.body.user_id;
     
     if(shares)
-        shares = shares + " " + cube_id;
+        shares = shares + " " + user_id;
     else
-        shares = cube_id;
+        shares = user_id;
     // save data in table
     var sql = 'UPDATE ' + dbconfig.cubes + ' SET shared="' + shares + '"' + ' WHERE id= ' + cube_id;
     connection.query(sql, function (err, result) {

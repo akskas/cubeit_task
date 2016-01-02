@@ -25,7 +25,7 @@
     app.post('/user/:user_id/content', getController.createContent);
     app.post('/user/:user_id/cube/:cube_id/content', getController.addContentToCube);
     app.delete('/user/:user_id/cube/:cube_id/content/:content_id', getController.removeFromCube);
-    app.delete('/user/:user_id/cube/:cube_id', getController.deleteCube);
+    app.post('/user/:user_id/cube/:cube_id', getController.deleteCube);
 
     app.post('/user/:user_id/cube/:cube_id/share', getController.shareCube);
     app.post('/user/:user_id/content/:content_id/share', getController.shareContent);
