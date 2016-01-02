@@ -71,7 +71,10 @@ var CopyCubeToUser = function(req, res, cube_id, response){
 }
 
 var UpdateCubeInUser = function(req, res, user_id, cubes, cube_id, response){
-    cubes = cubes + " " + cube_id;
+    if(cubes) 
+        cubes = cubes + " " + cube_id;
+    else
+        cubes = cube_id;
     // save data in table
     var sql = 'UPDATE ' + dbconfig.user + ' SET cubes="' + cubes + '"' + ' WHERE id= ' + user_id;
     connection.query(sql, function (err, result) {
@@ -125,7 +128,10 @@ var CopyContentToUser = function(req, res, content_id, response){
 }
 
 var UpdateContentInUser = function(req, res, user_id, content, content_id, response){
-    content = content + " " + content_id;
+    if(content)
+        content = content + " " + content_id;
+    else
+        content = content_id;
     // save data in table
     var sql = 'UPDATE ' + dbconfig.user + ' SET content="' + content + '"' + ' WHERE id= ' + user_id;
     connection.query(sql, function (err, result) {
@@ -251,11 +257,56 @@ var shareCube = function(req, res){
             console.log("content: ",result);
             result = JSON.stringify(result);
             result = JSON.parse(result);
-            addCubeToUser(req, res, result[0].cubes);
+            console.log("content2: ",result);
+            if(result.length)
+                updateShareCube(req, res, result[0].cubes);
+            else
+                updateShareCube(req, res, "");
+        }
+    });
+}
+var updateShareCube = function(req, res, cubes){
+    var cube_id = req.params.cube_id;
+    
+    var sql = 'SELECT shared FROM ' + dbconfig.cubes + ' WHERE id=' + cube_id;
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log("error in select", err);
+            res.send(err);
+        } else {
+            console.log(" share: ",result);
+            result = JSON.stringify(result);
+            result = JSON.parse(result);
+            console.log(" share2: ",result);
+            if(result.length)
+                addToShare(req, res, cubes, result[0].shared);
+            else
+                addToShare(req, res, cubes, "");
         }
     });
 }
 
+var addToShare = function(req, res, cubes, shares){
+    var cube_id = req.params.cube_id;
+    var user_id = req.body.user_id;
+    
+    if(shares)
+        shares = shares + " " + cube_id;
+    else
+        shares = cube_id;
+    // save data in table
+    var sql = 'UPDATE ' + dbconfig.cubes + ' SET shared="' + shares + '"' + ' WHERE id= ' + cube_id;
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log("error in Update", err);
+            res.send(err);
+        } else {
+            console.log('data saved');
+            addCubeToUser(req, res, cubes);
+        }
+    });
+}                     
+                     
 var addCubeToUser = function(req, res, content){
     var cube_id = req.params.cube_id;
     var user_id = req.body.user_id;
@@ -265,7 +316,11 @@ var addCubeToUser = function(req, res, content){
         user_id: user_id
     };  
 
-    var cubes = content + " " + cube_id;
+    var cubes;
+    if(content)
+        cubes = content + " " + cube_id;
+    else
+        cubes = cube_id;
     // save data in table
     var sql = 'UPDATE ' + dbconfig.user + ' SET cubes="' + cubes + '"' + ' WHERE id= ' + user_id;
     connection.query(sql, function (err, result) {
@@ -291,7 +346,10 @@ var shareContent = function(req, res){
             console.log("content: ",result);
             result = JSON.stringify(result);
             result = JSON.parse(result);
-            addContUser(req, res, result[0].content);
+            if(result.length)
+                addContUser(req, res, result[0].content);
+            else
+                addContUser(req, res, "");
         }
     });
 }
@@ -305,7 +363,11 @@ var addContUser = function(req, res, content){
         user_id: user_id
     };  
 
-    var new_content = content + " " + content_id;
+    var new_content;
+    if(content)
+        new_content = content + " " + content_id;
+    else
+        new_content = content_id;
     // save data in table
     var sql = 'UPDATE ' + dbconfig.user + ' SET content="' + new_content + '"' + ' WHERE id= ' + user_id;
     connection.query(sql, function (err, result) {

@@ -1,9 +1,9 @@
-// server.js
+// server.js 
 
     // set up ========================
     var express  = require('express');
     var app = module.exports = express();                               // create our app w/ express
-    var PORT = 9000;
+    var PORT = 9100;
 
     app.get('/', function(req, res){ 
         res.render('index');
@@ -63,7 +63,7 @@
     // tables is the result of search query
     var create_cubes =  function(tables){  
         if(tables.length == 0){
-            var sql4 = 'CREATE TABLE '+ dbconfig.cubes +' (id INT NOT NULL AUTO_INCREMENT,user_id INT, name VARCHAR(255), content TEXT, PRIMARY KEY (id))';
+            var sql4 = 'CREATE TABLE '+ dbconfig.cubes +' (id INT NOT NULL AUTO_INCREMENT,user_id INT, name VARCHAR(255), content TEXT, shared TEXT, PRIMARY KEY (id))';
             connection.query(sql4, function(err, result){
                 // Case there is an error during the creation
                 if(err) {
