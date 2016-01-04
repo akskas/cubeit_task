@@ -1,53 +1,242 @@
 <html>
     <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     </head>
     <body>
         <h1>Create User</h1>
-        <form method="post"  action="/user">
-            <input type="name" name="name" placeholder="name">
-            <input type="city" name="city" placeholder="city">
+        <form id="createUser">
+            <input type="name" name="name" id="name1" placeholder="name">
+            <input type="name" name="city" id="city1" placeholder="city">
             <input type="submit">
-        </form>  </br>
+        </form>
+        <div id="first"></div>
+        </br>
         <h1> Create Cube</h1>
-        <form method="post"  action="/user/1/cube">
-            <input type="name" name="name" placeholder="name">
+        <form id="createCube">
+            <input type="number" name="user_id" id="userid2" placeholder="body.params: user_id">
+            <input type="name" name="name" id="name2" placeholder="name">
             <input type="submit">
-        </form>     </br>
+        </form> 
+        <div id="second"></div>
+        </br>
         <h1> Create Content</h1>
-        <form method="post"  action="/user/1/content">
-            <input type="name" name="link" placeholder="name">
+        <form id="createContent">
+            <input type="number" name="user_id" id="userid3" placeholder="body.params: user_id">
+            <input type="name" name="link" id="link3" placeholder="link">
             <input type="submit">
-        </form>     </br>
+        </form>   
+        <div id="third"></div>
+        </br>
         <h1> Add content to cube</h1>
-        <form method="post"  action="/user/1/cube/1/content">
-            <input type="number" name="content_id" placeholder="content ID">
+        <form id="addContentToCube">
+            <input type="number" name="user_id" id="userid4" placeholder="body.params: user_id">
+            <input type="number" name="cube_id" id="cubeid4" placeholder="body.params: cube_id">
+            <input type="number" name="content_id" id="contentid4" placeholder="content ID">
             <input type="submit">
-        </form>     </br>
-        <h1> remove content from cube</h1>
-        <form method="post"  action="/user/1/cube/1/content/8">
+        </form>  <div id="fourth"></div>   </br>
+        <h1> For deleting a content from a cube </h1>
+        <form id="deleteContentFromCube">
+            <input type="number" name="user_id" id="userid5" placeholder="body.params: user_id">
+            <input type="number" name="cube_id" id="cubeid5" placeholder="body.params: cube_id">
+            <input type="number" name="content_id" id="contentid5" placeholder="body.params: content_id">
             <input type="submit">
-        </form>     </br>
+        </form>  <div id="fifth"></div>   </br>
         <h1>Delete cube</h1>
-        <form method="post"  action="/user/1/cube/3">
+        <form id="deleteCube">
+            <input type="number" name="user_id" id="userid6" placeholder="body.params: user_id">
+            <input type="number" name="cube_id" id="cubeid6" placeholder="body.params: cube_id">
             <input type="submit">
-        </form>     </br>
+        </form>  <div id="sixth"></div>   </br>
         <h1> share cube with user</h1>
-        <form method="post" action="/user/1/cube/1/share">
-            <input type="name" name="user_id" placeholder="user_id">
+        <form id="shareCubewithUser">
+            <input type="number" name="user_id" id="userid7" placeholder="body.params: user_id">
+            <input type="number" name="cube_id" id="cubeid7" placeholder="body.params: cube_id">
+            <input type="name" name="user_id" id="userid7b" placeholder="user_id (with which to be shared)">
             <input type="submit">
-        </form>     </br>
+        </form>  <div id="seventh"></div>   </br>
         <h1> share content with user</h1>
-        <form method="post" action="/user/1/content/2/share">
-            <input type="name" name="user_id" placeholder="user_id">
+        <form id="shareContentwithUser">
+            <input type="number" name="user_id" id="userid8" placeholder="body.params: user_id">
+            <input type="number" name="content_id" id="contentid8" placeholder="body.params: content_id">
+            <input type="name" name="user_id" id="userid8b" placeholder="user_id (with which to be shared)">
             <input type="submit">
-        </form>     </br>
+        </form>  <div id="eighth"></div>   </br>
         <h1> list cubes</h1>
-        <form method="get" action="/user/1/cube">
+        <form id="listCubes">
+            <input type="number" name="user_id" id="userid9" placeholder="body.params: user_id">
             <input type="submit">
-        </form>     </br>
+        </form>  <div id="nineth"></div>   </br>
         <h1> list content</h1>
-        <form method="get" action="/user/1/content">
+        <form id="listContents">
+            <input type="number" name="user_id" id="userid10" placeholder="body.params: user_id">
             <input type="submit">
-        </form>     </br>
+        </form>   <div id="tenth"></div>  </br>
+
+    <script>
+        // create user
+        $("#createUser").submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/user",
+                dataType:"json",
+                data: { name: $('#name1').val(), city: $('#city1').val() }  
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#first").append(msg);
+                $("#name1").val('');
+                $("#city1").val('');
+            });
+            event.preventDefault();
+        });
+        
+        $("#createCube").submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/user/" + $("#userid2").val() + "/cube",
+                dataType:"json",
+                data: { name: $('#name2').val()}  
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#second").append(msg);
+                $("#userid2").val('');
+                $("#name2").val('');
+            });
+            event.preventDefault();
+        });
+        
+        $("#createContent").submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/user/" + $("#userid3").val() + "/content",
+                dataType:"json",
+                data: { link: $('#link3').val()}  
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#third").append(msg);
+                $("#userid3").val('');
+                $("#link3").val('');
+            });
+            event.preventDefault();
+        });
+        
+        $("#addContentToCube").submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/user/" + $("#userid4").val() + "/cube/" + $("#cubeid4").val() + "/content",
+                dataType:"json",
+                data: { content_id: $('#contentid4').val()}  
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#fourth").append(msg);
+                $("#userid4").val('');
+                $("#cubeid4").val('');
+                $("#contentid4").val('');
+            });
+            event.preventDefault();
+        });
+        
+        $("#deleteContentFromCube").submit(function( event ) {
+            $.ajax({
+                method: "DELETE",
+                url: "/user/" + $("#userid5").val() + "/cube/" + $("#cubeid5").val() + "/content/" + $('#contentid5').val(),
+                success: function(msg) {
+                    console.log( "Data Saved: " + msg );
+                    msg = JSON.stringify(msg);
+                    $("#fifth").append(msg);
+                    $("#userid5").val('');
+                    $("#cubeid5").val('');
+                    $("#contentid5").val('');
+                }
+            });
+            event.preventDefault();
+        });
+        
+        $("#deleteCube").submit(function( event ) {
+            $.ajax({
+                method: "DELETE",
+                url: "/user/" + $("#userid6").val() + "/cube/" + $("#cubeid6").val(),
+                success: function(msg) {
+                    console.log( "Data Saved: " + msg );
+                    msg = JSON.stringify(msg);
+                    $("#sixth").append(msg);
+                    $("#userid6").val('');
+                    $("#cubeid6").val('');
+                }
+            });
+            event.preventDefault();
+        });
+        
+         $("#shareCubewithUser").submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/user/" + $("#userid7").val() + "/cube/" + $("#cubeid7").val() + "/share",
+                dataType:"json",
+                data: { user_id: $('#userid7b').val()}  
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#seventh").append(msg);
+                $("#userid7").val('');
+                $("#cubeid7").val('');
+                $("#userid7b").val('');
+            });
+            event.preventDefault();
+        });
+    
+        $("#shareContentwithUser").submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/user/" + $("#userid8").val() + "/content/" + $("#contentid8").val() + "/share",
+                dataType:"json",
+                data: { user_id: $('#userid8b').val()}  
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#eighth").append(msg);
+                $("#userid8").val('');
+                $("#contentid8").val('');
+                $("#userid8b").val('');
+            });
+            event.preventDefault();
+        });
+        
+        $("#listCubes").submit(function( event ) {
+            $.ajax({
+                method: "GET",
+                url: "/user/" + $("#userid9").val() + "/cube"
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#nineth").append(msg);
+                $("#userid9").val('');
+            });
+            event.preventDefault();
+        });
+        
+        $("#listContents").submit(function( event ) {
+            $.ajax({
+                method: "GET",
+                url: "/user/" + $("#userid10").val() + "/content"
+            })
+            .done(function( msg ) {
+                console.log( "Data Saved: " + msg );
+                msg = JSON.stringify(msg);
+                $("#tenth").append(msg);
+                $("#userid10").val('');
+            });
+            event.preventDefault();
+        });
+    </script>
     </body>
 </html>
