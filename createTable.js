@@ -29,7 +29,7 @@
     // tables is the result of search query
     var create_user =  function(tables){  
         if(tables.length == 0){
-            var sql2 = 'CREATE TABLE user (id INT NOT NULL AUTO_INCREMENT,name VARCHAR(255), city VARCHAR(255), cubes TEXT, content TEXT, PRIMARY KEY (id))';
+            var sql2 = 'CREATE TABLE '+ dbconfig.user +' (id INT NOT NULL AUTO_INCREMENT,name VARCHAR(255), city VARCHAR(255), cubes TEXT, content TEXT, PRIMARY KEY (id))';
             connection.query(sql2, function(err, result){
                 // Case there is an error during the creation
                 if(err) {
@@ -63,7 +63,7 @@
     // tables is the result of search query
     var create_cubes =  function(tables){  
         if(tables.length == 0){
-            var sql4 = 'CREATE TABLE cubes (id INT NOT NULL AUTO_INCREMENT,user_id INT, name VARCHAR(255), content TEXT, shared TEXT, PRIMARY KEY (id))';
+            var sql4 = 'CREATE TABLE '+ dbconfig.cubes +' (id INT NOT NULL AUTO_INCREMENT,user_id INT, name VARCHAR(255), content TEXT, shared TEXT, PRIMARY KEY (id))';
             connection.query(sql4, function(err, result){
                 // Case there is an error during the creation
                 if(err) {
@@ -97,7 +97,7 @@
     // tables is the result of search query
     var create_content =  function(tables){  
         if(tables.length == 0){
-            var sql6 = 'CREATE TABLE content (id INT NOT NULL AUTO_INCREMENT,user_id INT, link VARCHAR(255), PRIMARY KEY (id))';
+            var sql6 = 'CREATE TABLE '+ dbconfig.content +' (id INT NOT NULL AUTO_INCREMENT,user_id INT, link VARCHAR(255), PRIMARY KEY (id))';
             connection.query(sql6, function(err, result){
                 // Case there is an error during the creation
                 if(err) {
