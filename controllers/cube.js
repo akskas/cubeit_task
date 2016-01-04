@@ -309,7 +309,12 @@ var deleteFromCube = function(req, res, shared, cube_id, creater_id){   //delete
     });
 }
 var getFromShared = function(req, res, shared, cube_id, creater_id){  //gets cubes list of all the users with which cube is shared 
-    shared = shared.split(' ');                                       // and the creater of cube 
+    if(shared)
+        shared = shared.split(' ');   // and the creater of cube
+    else{
+        var arr = [];
+        shared = arr;
+    }
     shared.push(creater_id.toString());
 //    console.log("before sorting: ", shared);
     var a;
